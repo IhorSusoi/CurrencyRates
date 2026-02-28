@@ -33,6 +33,43 @@
             "related": ".pdb;.xml"
           }
         }
+      },
+      "CurrencyRates.Application/1.0.0": {
+        "type": "project",
+        "framework": ".NETCoreApp,Version=v9.0",
+        "dependencies": {
+          "CurrencyRates.Domain": "1.0.0"
+        },
+        "compile": {
+          "bin/placeholder/CurrencyRates.Application.dll": {}
+        },
+        "runtime": {
+          "bin/placeholder/CurrencyRates.Application.dll": {}
+        }
+      },
+      "CurrencyRates.Domain/1.0.0": {
+        "type": "project",
+        "framework": ".NETCoreApp,Version=v9.0",
+        "compile": {
+          "bin/placeholder/CurrencyRates.Domain.dll": {}
+        },
+        "runtime": {
+          "bin/placeholder/CurrencyRates.Domain.dll": {}
+        }
+      },
+      "CurrencyRates.Infrastructure/1.0.0": {
+        "type": "project",
+        "framework": ".NETCoreApp,Version=v9.0",
+        "dependencies": {
+          "CurrencyRates.Application": "1.0.0",
+          "CurrencyRates.Domain": "1.0.0"
+        },
+        "compile": {
+          "bin/placeholder/CurrencyRates.Infrastructure.dll": {}
+        },
+        "runtime": {
+          "bin/placeholder/CurrencyRates.Infrastructure.dll": {}
+        }
       }
     }
   },
@@ -67,10 +104,27 @@
         "microsoft.openapi.1.6.17.nupkg.sha512",
         "microsoft.openapi.nuspec"
       ]
+    },
+    "CurrencyRates.Application/1.0.0": {
+      "type": "project",
+      "path": "../CurrencyRates.Application/CurrencyRates.Application.csproj",
+      "msbuildProject": "../CurrencyRates.Application/CurrencyRates.Application.csproj"
+    },
+    "CurrencyRates.Domain/1.0.0": {
+      "type": "project",
+      "path": "../CurrencyRates.Domain/CurrencyRates.Domain.csproj",
+      "msbuildProject": "../CurrencyRates.Domain/CurrencyRates.Domain.csproj"
+    },
+    "CurrencyRates.Infrastructure/1.0.0": {
+      "type": "project",
+      "path": "../CurrencyRates.Infrastructure/CurrencyRates.Infrastructure.csproj",
+      "msbuildProject": "../CurrencyRates.Infrastructure/CurrencyRates.Infrastructure.csproj"
     }
   },
   "projectFileDependencyGroups": {
     "net9.0": [
+      "CurrencyRates.Application >= 1.0.0",
+      "CurrencyRates.Infrastructure >= 1.0.0",
       "Microsoft.AspNetCore.OpenApi >= 9.0.13"
     ]
   },
@@ -106,7 +160,14 @@
       "frameworks": {
         "net9.0": {
           "targetAlias": "net9.0",
-          "projectReferences": {}
+          "projectReferences": {
+            "C:\\Users\\ihors\\source\\repos\\CurrencyRates\\CurrencyRates.Application\\CurrencyRates.Application.csproj": {
+              "projectPath": "C:\\Users\\ihors\\source\\repos\\CurrencyRates\\CurrencyRates.Application\\CurrencyRates.Application.csproj"
+            },
+            "C:\\Users\\ihors\\source\\repos\\CurrencyRates\\CurrencyRates.Infrastructure\\CurrencyRates.Infrastructure.csproj": {
+              "projectPath": "C:\\Users\\ihors\\source\\repos\\CurrencyRates\\CurrencyRates.Infrastructure\\CurrencyRates.Infrastructure.csproj"
+            }
+          }
         }
       },
       "warningProperties": {

@@ -1,11 +1,49 @@
 {
   "version": 3,
   "targets": {
-    "net9.0": {}
+    "net9.0": {
+      "CurrencyRates.Application/1.0.0": {
+        "type": "project",
+        "framework": ".NETCoreApp,Version=v9.0",
+        "dependencies": {
+          "CurrencyRates.Domain": "1.0.0"
+        },
+        "compile": {
+          "bin/placeholder/CurrencyRates.Application.dll": {}
+        },
+        "runtime": {
+          "bin/placeholder/CurrencyRates.Application.dll": {}
+        }
+      },
+      "CurrencyRates.Domain/1.0.0": {
+        "type": "project",
+        "framework": ".NETCoreApp,Version=v9.0",
+        "compile": {
+          "bin/placeholder/CurrencyRates.Domain.dll": {}
+        },
+        "runtime": {
+          "bin/placeholder/CurrencyRates.Domain.dll": {}
+        }
+      }
+    }
   },
-  "libraries": {},
+  "libraries": {
+    "CurrencyRates.Application/1.0.0": {
+      "type": "project",
+      "path": "../CurrencyRates.Application/CurrencyRates.Application.csproj",
+      "msbuildProject": "../CurrencyRates.Application/CurrencyRates.Application.csproj"
+    },
+    "CurrencyRates.Domain/1.0.0": {
+      "type": "project",
+      "path": "../CurrencyRates.Domain/CurrencyRates.Domain.csproj",
+      "msbuildProject": "../CurrencyRates.Domain/CurrencyRates.Domain.csproj"
+    }
+  },
   "projectFileDependencyGroups": {
-    "net9.0": []
+    "net9.0": [
+      "CurrencyRates.Application >= 1.0.0",
+      "CurrencyRates.Domain >= 1.0.0"
+    ]
   },
   "packageFolders": {
     "C:\\Users\\ihors\\.nuget\\packages\\": {},
@@ -39,7 +77,14 @@
       "frameworks": {
         "net9.0": {
           "targetAlias": "net9.0",
-          "projectReferences": {}
+          "projectReferences": {
+            "C:\\Users\\ihors\\source\\repos\\CurrencyRates\\CurrencyRates.Application\\CurrencyRates.Application.csproj": {
+              "projectPath": "C:\\Users\\ihors\\source\\repos\\CurrencyRates\\CurrencyRates.Application\\CurrencyRates.Application.csproj"
+            },
+            "C:\\Users\\ihors\\source\\repos\\CurrencyRates\\CurrencyRates.Domain\\CurrencyRates.Domain.csproj": {
+              "projectPath": "C:\\Users\\ihors\\source\\repos\\CurrencyRates\\CurrencyRates.Domain\\CurrencyRates.Domain.csproj"
+            }
+          }
         }
       },
       "warningProperties": {
