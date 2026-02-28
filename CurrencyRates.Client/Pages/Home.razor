@@ -1,7 +1,102 @@
 ﻿@page "/"
+@using CurrencyRates.Client.Services
+@inject CurrencyRates.Client.Services.CurrencyRatesApiClient ApiClient
 
-<PageTitle>Home</PageTitle>
+<PageTitle>Курси валют НБУ</PageTitle>
 
-<h1>Hello, world!</h1>
+<h3>Курси валют НБУ</h3>
 
-Welcome to your new app.
+<div style="display: flex; align-items: flex-end; gap: 16px; margin-bottom: 24px;">
+    <div>
+        <label>Дата</label>
+        <RadzenDatePicker @bind-Value="selectedDate"
+                          DateFormat="yyyy-MM-dd"
+                          Style="display:block; width: 200px;" />
+    </div>
+
+    <RadzenButton Text="Показати"
+                  Icon="search"
+                  Click="LoadRates"
+                  Disabled="isLoading" />
+</div>
+
+@if (isLoading)
+{
+    <RadzenProgressBar Value="100" ShowValue="false" Mode="ProgressBarMode.Indeterminate" />
+}
+
+@if (errorMessage is not null)
+{
+    <RadzenAlert AlertStyle="AlertStyle.Danger" ShowIcon="true">
+        @errorMessage
+    </RadzenAlert>
+}
+
+@if (rates is not null)
+{
+    @if (rates.Count == 0)
+    {
+        <RadzenAlert AlertStyle="AlertStyle.Warning" ShowIcon="true">
+            Немає даних на вибрану дату.
+        </RadzenAlert>
+    }
+    else
+    {
+        <RadzenDataGrid Data="rates" TItem="CurrencyRateModel" AllowSorting="true">
+            <Columns>
+                <RadzenDataGridColumn TItem="CurrencyRateModel"
+                                      Property="CurrencyCode"
+                                      Title="Валюта"
+                                      Width="100px" />
+
+                <RadzenDataGridColumn TItem="CurrencyRateModel"
+                                      Property="CurrencyName"
+                                      Title="Назва валюти"
+                                      Width="100px" />
+
+                <RadzenDataGridColumn TItem="CurrencyRateModel"
+                                      Property="Rate"
+                                      Title="Курс (UAH)"
+                                      Width="130px"
+                                      FormatString="{0:F4}" />
+
+                <RadzenDataGridColumn TItem="CurrencyRateModel"
+                                      Property="RateDate"
+                                      Title="Дата курсу"
+                                      Width="130px"
+                                      FormatString="{0:yyyy-MM-dd}" />
+
+                <RadzenDataGridColumn TItem="CurrencyRateModel"
+                                      Property="Source"
+                                      Title="Джерело"
+                                      Width="100px" />
+
+                <RadzenDataGridColumn TItem="CurrencyRateModel"
+                                      Property="CreatedAt"
+                                      Title="Завантажено в БД"
+                                      FormatString="{0:yyyy-MM-dd HH:mm:ss}" />
+            </Columns>
+        </RadzenDataGrid>
+    }
+}
+
+@code {
+    private DateTime selectedDate = DateTime.Today;
+    private List<CurrencyRateModel>? rates;
+    private bool isLoading;
+    private string? errorMessage;
+
+    private async Task LoadRates()
+    {
+        isLoading = true;
+        errorMessage = null;
+        rates = null;
+
+        var date = DateOnly.FromDateTime(selectedDate);
+        var (result, error) = await ApiClient.GetRatesAsync(date);
+
+        rates = result;
+        errorMessage = error;
+        isLoading = false;
+    }
+}
