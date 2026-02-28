@@ -23,7 +23,7 @@ public interface ICurrencyRateService
     Task<IReadOnlyList<CurrencyRate>> GetOrFetchRatesAsync(DateOnly date, SourceType source);
 
     /// <summary>
-    /// Синхронізує курси на сьогоднішню дату.
+    /// Синхронізує курси на завтрішню дату.
     /// Викликається автоматично по розкладу.
     /// </summary>
     Task SyncTodayRatesAsync();
