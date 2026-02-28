@@ -1,0 +1,11 @@
+{
+  "version": 2,
+  "dgSpecHash": "txa8hV4AalM=",
+  "success": true,
+  "projectFilePath": "C:\\Users\\ihors\\source\\repos\\CurrencyRates\\CurrencyRates.API\\CurrencyRates.API.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\ihors\\.nuget\\packages\\microsoft.aspnetcore.openapi\\9.0.13\\microsoft.aspnetcore.openapi.9.0.13.nupkg.sha512",
+    "C:\\Users\\ihors\\.nuget\\packages\\microsoft.openapi\\1.6.17\\microsoft.openapi.1.6.17.nupkg.sha512"
+  ],
+  "logs": []
+}

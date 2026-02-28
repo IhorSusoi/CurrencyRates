@@ -1,0 +1,7 @@
+<Solution>
+  <Project Path="CurrencyRates.API/CurrencyRates.API.csproj" />
+  <Project Path="CurrencyRates.Application/CurrencyRates.Application.csproj" />
+  <Project Path="CurrencyRates.Client/CurrencyRates.Client.csproj" />
+  <Project Path="CurrencyRates.Domain/CurrencyRates.Domain.csproj" />
+  <Project Path="CurrencyRates.Infrastructure/CurrencyRates.Infrastructure.csproj" />
+</Solution>
