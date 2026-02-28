@@ -3,6 +3,8 @@ using CurrencyRates.Domain.Interfaces;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using System.Globalization;
+using System.Xml;
 
 namespace CurrencyRates.Application.Services;
 
@@ -20,9 +22,6 @@ public class AutoSyncHostedService : BackgroundService
     private readonly ILogger<AutoSyncHostedService> _logger;
     private readonly TimeOnly _syncTime;
 
-    // О котрій годині робити синхронізацію щодня
-    private static readonly TimeOnly SyncTime = new(16, 00);
-
     public AutoSyncHostedService(
         ICurrencyRateService currencyRateService,
         ILogger<AutoSyncHostedService> logger,
@@ -30,7 +29,7 @@ public class AutoSyncHostedService : BackgroundService
     {
         _currencyRateService = currencyRateService;
         _logger = logger;
-        _syncTime = TimeOnly.Parse(options.Value.DailySyncTime);
+        _syncTime = TimeOnly.Parse(options.Value.DailySyncTime, CultureInfo.InvariantCulture);
     }
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -91,7 +90,7 @@ public class AutoSyncHostedService : BackgroundService
     /// <summary>
     /// Розраховує скільки часу чекати до наступного запуску о 16:00.
     /// </summary>
-    private static TimeSpan CalculateDelayUntilNextSync()
+    private TimeSpan CalculateDelayUntilNextSync()
     {
         var now = DateTime.Now;
         var todaySync = DateTime.Today.Add(_syncTime.ToTimeSpan());

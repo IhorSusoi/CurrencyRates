@@ -20,4 +20,7 @@ public class CurrencyOptions
     /// За замовчуванням: 16:00.
     /// </summary>
     public string DailySyncTime { get; set; } = "16:00";
+
+    /// <summary>Базова адреса API Національного банку України.</summary>
+    public string NbuApiBaseUrl { get; set; } = "https://bank.gov.ua/NBUStatService/v1/statdirectory/exchange";
 }

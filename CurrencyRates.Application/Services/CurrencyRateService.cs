@@ -1,7 +1,9 @@
-﻿using CurrencyRates.Domain.Entities;
+﻿using CurrencyRates.Application.Options;
+using CurrencyRates.Domain.Entities;
 using CurrencyRates.Domain.Enums;
 using CurrencyRates.Domain.Interfaces;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 namespace CurrencyRates.Application.Services;
 
@@ -12,21 +14,21 @@ namespace CurrencyRates.Application.Services;
 /// </summary>
 public class CurrencyRateService : ICurrencyRateService
 {
-    // Список валют які ми підтримуємо — в одному місці щоб легко додати нову
-    private static readonly string[] SupportedCurrencies = ["USD", "EUR", "DKK", "PLN"];
-
     private readonly ICurrencyRateRepository _repository;
     private readonly INbuApiClient _nbuApiClient;
     private readonly ILogger<CurrencyRateService> _logger;
+    private readonly CurrencyOptions _options;
 
     public CurrencyRateService(
         ICurrencyRateRepository repository,
         INbuApiClient nbuApiClient,
-        ILogger<CurrencyRateService> logger)
+        ILogger<CurrencyRateService> logger,
+        IOptions<CurrencyOptions> options)
     {
         _repository = repository;
         _nbuApiClient = nbuApiClient;
         _logger = logger;
+        _options = options.Value;
     }
 
     /// <inheritdoc/>
@@ -36,7 +38,7 @@ public class CurrencyRateService : ICurrencyRateService
         var existingCodes = await _repository.GetExistingCurrencyCodesAsync(date);
 
         // Знаходимо яких валют не вистачає
-        var missingCodes = SupportedCurrencies
+        var missingCodes = _options.SupportedCurrencies
             .Except(existingCodes, StringComparer.OrdinalIgnoreCase)
             .ToList();
 
@@ -61,7 +63,7 @@ public class CurrencyRateService : ICurrencyRateService
         _logger.LogInformation("Початок автоматичної синхронізації на дату {Date}", today);
 
         var existingCodes = await _repository.GetExistingCurrencyCodesAsync(today);
-        var missingCodes = SupportedCurrencies
+        var missingCodes = _options.SupportedCurrencies
             .Except(existingCodes, StringComparer.OrdinalIgnoreCase)
             .ToList();
 
