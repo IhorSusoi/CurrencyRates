@@ -28,7 +28,7 @@ public class CurrencyRate
     /// <summary>
     /// Дата, на яку встановлено курс. Формат "yyyy-MM-dd".
     /// </summary>
-    public DateTime RateDate { get; set; }
+    public DateOnly RateDate { get; set; }
     /// <summary>
     /// Джерело даних, яке вказує, чи був курс завантажений автоматично по графіку (Auto) чи введений вручну користувачем (Manual).
     /// </summary>
