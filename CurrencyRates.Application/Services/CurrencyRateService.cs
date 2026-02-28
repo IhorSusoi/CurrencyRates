@@ -93,10 +93,20 @@ public class CurrencyRateService : ICurrencyRateService
         {
             try
             {
+                var currencyId = await _repository.GetCurrencyIdByCodeAsync(code);
+
+                if (currencyId is null)
+                {
+                    _logger.LogWarning("Валюта {Code} не знайдена в довіднику БД", code);
+                    continue;
+                }
+
                 var rate = await _nbuApiClient.GetRateAsync(code, date);
 
                 if (rate is not null)
                 {
+                    rate.CurrencyId = currencyId.Value;
+                    rate.Currency = new Currency { Code = code };
                     fetchedRates.Add(rate);
                     _logger.LogInformation("Отримано курс {Code} = {Rate} на {Date}", code, rate.Rate, date);
                 }

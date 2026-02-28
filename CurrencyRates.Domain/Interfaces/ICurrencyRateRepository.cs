@@ -29,4 +29,11 @@ public interface ICurrencyRateRepository
     /// <param name="rates">Список курсів для збереження.</param>
     /// <param name="source">Звідки прийшли дані: Auto або Manual.</param>
     Task SaveRatesAsync(IEnumerable<CurrencyRate> rates, SourceType source);
+
+    /// <summary>
+    /// Повертає ID валюти з довідника по її коду.
+    /// </summary>
+    /// <param name="code">Код валюти (USD, EUR...).</param>
+    /// <returns>ID або null якщо валюта не знайдена в довіднику.</returns>
+    Task<int?> GetCurrencyIdByCodeAsync(string code);
 }

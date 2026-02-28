@@ -55,7 +55,7 @@ public class NbuApiClient : INbuApiClient
         {
             Rate = nbuRate.Rate,
             RateDate = date,
-            CreatedAt = DateTime.UtcNow
+            CreatedAt = DateTime.Now
         };
     }
 }

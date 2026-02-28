@@ -1,10 +1,10 @@
 ﻿using CurrencyRates.Application.Options;
 using CurrencyRates.Domain.Interfaces;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System.Globalization;
-using System.Xml;
 
 namespace CurrencyRates.Application.Services;
 
@@ -12,32 +12,26 @@ namespace CurrencyRates.Application.Services;
 /// Фонова служба яка автоматично синхронізує курси валют щодня о 16:00.
 /// Також робить перевірку при старті застосунку.
 /// </summary>
-/// <remarks>
-/// НБУ публікує курси приблизно о 15:00–15:30 щодня.
-/// Ми робимо запит о 16:00 щоб бути впевнені що дані вже опубліковані.
-/// </remarks>
 public class AutoSyncHostedService : BackgroundService
 {
-    private readonly ICurrencyRateService _currencyRateService;
+    private readonly IServiceScopeFactory _scopeFactory;
     private readonly ILogger<AutoSyncHostedService> _logger;
     private readonly TimeOnly _syncTime;
 
     public AutoSyncHostedService(
-        ICurrencyRateService currencyRateService,
+        IServiceScopeFactory scopeFactory,
         ILogger<AutoSyncHostedService> logger,
         IOptions<CurrencyOptions> options)
     {
-        _currencyRateService = currencyRateService;
+        _scopeFactory = scopeFactory;
         _logger = logger;
         _syncTime = TimeOnly.Parse(options.Value.DailySyncTime, CultureInfo.InvariantCulture);
     }
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        // Перевірка при старті — якщо курсів на сьогодні немає, завантажуємо
         await RunStartupSyncAsync();
 
-        // Далі чекаємо потрібного часу і синхронізуємо щодня
         while (!stoppingToken.IsCancellationRequested)
         {
             var delay = CalculateDelayUntilNextSync();
@@ -55,15 +49,14 @@ public class AutoSyncHostedService : BackgroundService
         }
     }
 
-    /// <summary>
-    /// Синхронізація при старті застосунку.
-    /// </summary>
     private async Task RunStartupSyncAsync()
     {
         _logger.LogInformation("Перевірка курсів при старті застосунку...");
         try
         {
-            await _currencyRateService.SyncTodayRatesAsync();
+            using var scope = _scopeFactory.CreateScope();
+            var service = scope.ServiceProvider.GetRequiredService<ICurrencyRateService>();
+            await service.SyncTodayRatesAsync();
         }
         catch (Exception ex)
         {
@@ -71,15 +64,14 @@ public class AutoSyncHostedService : BackgroundService
         }
     }
 
-    /// <summary>
-    /// Щоденна синхронізація о 16:00.
-    /// </summary>
     private async Task RunDailySyncAsync()
     {
         _logger.LogInformation("Початок планової щоденної синхронізації");
         try
         {
-            await _currencyRateService.SyncTodayRatesAsync();
+            using var scope = _scopeFactory.CreateScope();
+            var service = scope.ServiceProvider.GetRequiredService<ICurrencyRateService>();
+            await service.SyncTodayRatesAsync();
         }
         catch (Exception ex)
         {
@@ -87,17 +79,11 @@ public class AutoSyncHostedService : BackgroundService
         }
     }
 
-    /// <summary>
-    /// Розраховує скільки часу чекати до наступного запуску о 16:00.
-    /// </summary>
     private TimeSpan CalculateDelayUntilNextSync()
     {
         var now = DateTime.Now;
         var todaySync = DateTime.Today.Add(_syncTime.ToTimeSpan());
-
-        // Якщо 16:00 сьогодні вже минуло — плануємо на завтра
         var nextSync = now < todaySync ? todaySync : todaySync.AddDays(1);
-
         return nextSync - now;
     }
 }

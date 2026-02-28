@@ -30,7 +30,7 @@ public class AppDbContext : DbContext
 
             entity.Property(e => e.Name)
                 .IsRequired()
-                .HasMaxLength(10);
+                .HasMaxLength(30);
 
             // Унікальний індекс — не може бути двох однакових кодів валюти
             entity.HasIndex(e => e.Code).IsUnique();

@@ -43,7 +43,7 @@ public class CurrencyRateRepository : ICurrencyRateRepository
             Id = (int)row.Id,
             CurrencyId = (int)row.CurrencyId,
             Rate = (decimal)row.Rate,
-            RateDate = DateOnly.Parse(row.RateDate.ToString()),
+            RateDate = DateOnly.FromDateTime((DateTime)row.RateDate),
             Source = Enum.Parse<SourceType>(row.Source.ToString()),
             CreatedAt = (DateTime)row.CreatedAt,
             Currency = new Currency
@@ -56,10 +56,21 @@ public class CurrencyRateRepository : ICurrencyRateRepository
     }
 
     /// <inheritdoc/>
+    public async Task<int?> GetCurrencyIdByCodeAsync(string code)
+    {
+        var result = await _db.Query("Currencies")
+            .Select("Id")
+            .Where("Code", code)
+            .FirstOrDefaultAsync<int?>();
+
+        return result;
+    }
+
+    /// <inheritdoc/>
     public async Task<IReadOnlyList<string>> GetExistingCurrencyCodesAsync(DateOnly date)
     {
         var codes = await _db.Query("CurrencyRates as cr")
-            .Join("Curencies as c", "c.Id", "cr.CurrencyId")
+            .Join("Currencies as c", "c.Id", "cr.CurrencyId")
             .Select("c.Code")
             .Where("cr.RateDate", date.ToString("yyyy-MM-dd"))
             .GetAsync<string>();
@@ -82,8 +93,8 @@ public class CurrencyRateRepository : ICurrencyRateRepository
                 if (exists)
                 {
                     _logger.LogInformation(
-                        "Курс для CurrencyId={Id} на {Date} вже є в БД, пропускаємо",
-                        rate.CurrencyId, rate.RateDate);
+                        "Курс для {Code} на {Date} вже є в БД, пропускаємо",
+                        rate.Currency?.Code ?? $"CurrencyId={rate.CurrencyId}", rate.RateDate);
                     continue;
                 }
 
@@ -93,17 +104,17 @@ public class CurrencyRateRepository : ICurrencyRateRepository
                     Rate = rate.Rate,
                     RateDate = rate.RateDate.ToString("yyyy-MM-dd"),
                     Source = source.ToString(),
-                    CreatedAt = DateTime.UtcNow
+                    CreatedAt = DateTime.Now
                 });
 
                 _logger.LogInformation(
-                    "Збережено курс CurrencyId={Id} на {Date}",
-                    rate.CurrencyId, rate.RateDate);
+                    "Збережено курс {Code} = {Rate} на {Date}",
+                    rate.Currency?.Code ?? $"CurrencyId={rate.CurrencyId}", rate.Rate, rate.RateDate);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex,
-                    "Помилка збереження курсу CurrencyId={Id} на {Date}",
+                    "Помилка збереження курсу {Code} на {Date}",
                     rate.CurrencyId, rate.RateDate);
             }
         }

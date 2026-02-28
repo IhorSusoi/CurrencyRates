@@ -1,41 +1,86 @@
-var builder = WebApplication.CreateBuilder(args);
+using CurrencyRates.Infrastructure.Data;
+using CurrencyRates.Infrastructure.Extensions;
+using Microsoft.EntityFrameworkCore;
+using Serilog;
 
-// Add services to the container.
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
-builder.Services.AddOpenApi();
+Console.OutputEncoding = System.Text.Encoding.UTF8;
 
-var app = builder.Build();
+Log.Logger = new LoggerConfiguration()
+    .MinimumLevel.Information()
+    .WriteTo.Console()
+    .WriteTo.File(
+        path: "logs/app-.log",
+        rollingInterval: RollingInterval.Day,  // новий файл кожен день
+        outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss} [{Level:u3}] {Message:lj}{NewLine}{Exception}")
+    .CreateLogger();
 
-// Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
+try
 {
-    app.MapOpenApi();
+    Log.Information("Запуск застосунку...");
+
+    var builder = WebApplication.CreateBuilder(args);
+
+    // Підключаємо Serilog замість стандартного логування
+    builder.Host.UseSerilog();
+
+    // Реєструємо всі сервіси Infrastructure (БД, НБУ клієнт, репозиторій...)
+    builder.Services.AddInfrastructure(builder.Configuration);
+
+    builder.Services.AddControllers();
+
+    // Swagger — документація API
+    builder.Services.AddEndpointsApiExplorer();
+    builder.Services.AddSwaggerGen(options =>
+    {
+        options.SwaggerDoc("v1", new()
+        {
+            Title = "Currency Rates API",
+            Version = "v1",
+            Description = "API для отримання курсів валют НБУ"
+        });
+
+        // Підключаємо XML коментарі до Swagger
+        var xmlFile = $"{System.Reflection.Assembly.GetExecutingAssembly().GetName().Name}.xml";
+        var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
+        if (File.Exists(xmlPath))
+            options.IncludeXmlComments(xmlPath);
+    });
+
+    // CORS — дозволяємо Blazor клієнту звертатись до API
+    builder.Services.AddCors(options =>
+    {
+        options.AddPolicy("BlazorClient", policy =>
+            policy.WithOrigins("https://localhost:7001", "http://localhost:5001")
+                  .AllowAnyHeader()
+                  .AllowAnyMethod());
+    });
+
+    var app = builder.Build();
+
+    // Автоматично застосовуємо міграції при старті
+    using (var scope = app.Services.CreateScope())
+    {
+        var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        db.Database.Migrate();
+        Log.Information("Міграції застосовано успішно");
+    }
+
+    if (app.Environment.IsDevelopment())
+    {
+        app.UseSwagger();
+        app.UseSwaggerUI();
+    }
+
+    app.UseCors("BlazorClient");
+    app.MapControllers();
+
+    app.Run();
 }
-
-app.UseHttpsRedirection();
-
-var summaries = new[]
+catch (Exception ex)
 {
-    "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-};
-
-app.MapGet("/weatherforecast", () =>
+    Log.Fatal(ex, "Застосунок впав при старті");
+}
+finally
 {
-    var forecast =  Enumerable.Range(1, 5).Select(index =>
-        new WeatherForecast
-        (
-            DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-            Random.Shared.Next(-20, 55),
-            summaries[Random.Shared.Next(summaries.Length)]
-        ))
-        .ToArray();
-    return forecast;
-})
-.WithName("GetWeatherForecast");
-
-app.Run();
-
-record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
-{
-    public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
+    Log.CloseAndFlush();
 }
