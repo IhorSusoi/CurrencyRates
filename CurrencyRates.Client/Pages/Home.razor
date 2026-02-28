@@ -6,9 +6,9 @@
 
 <h3>Курси валют НБУ</h3>
 
-<div style="display: flex; align-items: flex-end; gap: 16px; margin-bottom: 24px;">
+<div style="display: flex; align-items: flex-end; justify-content: center; gap: 16px; margin-bottom: 24px;">
     <div>
-        <label>Дата</label>
+        <label>Дата дії курсу</label>
         <RadzenDatePicker @bind-Value="selectedDate"
                           DateFormat="yyyy-MM-dd"
                           Style="display:block; width: 200px;" />
@@ -47,29 +47,29 @@
                 <RadzenDataGridColumn TItem="CurrencyRateModel"
                                       Property="CurrencyCode"
                                       Title="Валюта"
-                                      Width="100px" />
+                                      Width="100rm" />
 
                 <RadzenDataGridColumn TItem="CurrencyRateModel"
                                       Property="CurrencyName"
                                       Title="Назва валюти"
-                                      Width="100px" />
+                                      Width="300rm" />
 
                 <RadzenDataGridColumn TItem="CurrencyRateModel"
                                       Property="Rate"
                                       Title="Курс (UAH)"
-                                      Width="130px"
+                                      Width="130rm"
                                       FormatString="{0:F4}" />
 
                 <RadzenDataGridColumn TItem="CurrencyRateModel"
                                       Property="RateDate"
-                                      Title="Дата курсу"
-                                      Width="130px"
+                                      Title="Дата дії курсу"
+                                      Width="130rm"
                                       FormatString="{0:yyyy-MM-dd}" />
 
                 <RadzenDataGridColumn TItem="CurrencyRateModel"
                                       Property="Source"
                                       Title="Джерело"
-                                      Width="100px" />
+                                      Width="100rm" />
 
                 <RadzenDataGridColumn TItem="CurrencyRateModel"
                                       Property="CreatedAt"
@@ -85,6 +85,11 @@
     private List<CurrencyRateModel>? rates;
     private bool isLoading;
     private string? errorMessage;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadRates();
+    }
 
     private async Task LoadRates()
     {
