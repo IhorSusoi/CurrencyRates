@@ -116,9 +116,11 @@ CurrencyRates/
 ### 1. Клонуй репозиторій
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/CurrencyRates.git
+git clone https://github.com/IhorSusoi/CurrencyRates.git
 cd CurrencyRates
+docker compose up --build -d
 ```
+Якщо немає докера, тоді наступні кроки
 
 ### 2. Налаштуй підключення до БД
 
