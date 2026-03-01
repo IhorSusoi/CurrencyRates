@@ -1,24 +1,22 @@
 # Крок 1 — збираємо проект
-FROM mcr.microsoft.comdotnetsdk9.0 AS build
-WORKDIR src
+FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
+WORKDIR /src
 
-# Копіюємо всі csproj і відновлюємо залежності
-COPY CurrencyRates.APICurrencyRates.API.csproj CurrencyRates.API
-COPY CurrencyRates.ApplicationCurrencyRates.Application.csproj CurrencyRates.Application
-COPY CurrencyRates.DomainCurrencyRates.Domain.csproj CurrencyRates.Domain
-COPY CurrencyRates.InfrastructureCurrencyRates.Infrastructure.csproj CurrencyRates.Infrastructure
+COPY CurrencyRates.API/CurrencyRates.API.csproj CurrencyRates.API/
+COPY CurrencyRates.Application/CurrencyRates.Application.csproj CurrencyRates.Application/
+COPY CurrencyRates.Domain/CurrencyRates.Domain.csproj CurrencyRates.Domain/
+COPY CurrencyRates.Infrastructure/CurrencyRates.Infrastructure.csproj CurrencyRates.Infrastructure/
 
-RUN dotnet restore CurrencyRates.APICurrencyRates.API.csproj
+RUN dotnet restore CurrencyRates.API/CurrencyRates.API.csproj
 
-# Копіюємо весь код і публікуємо
 COPY . .
-RUN dotnet publish CurrencyRates.APICurrencyRates.API.csproj -c Release -o apppublish
+RUN dotnet publish CurrencyRates.API/CurrencyRates.API.csproj -c Release -o /app/publish
 
 # Крок 2 — фінальний образ (легший, без SDK)
-FROM mcr.microsoft.comdotnetaspnet9.0 AS final
-WORKDIR app
-COPY --from=build apppublish .
+FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS final
+WORKDIR /app
+COPY --from=build /app/publish .
 
 EXPOSE 8080
 
-ENTRYPOINT [dotnet, CurrencyRates.API.dll]
+ENTRYPOINT ["dotnet", "CurrencyRates.API.dll"]
