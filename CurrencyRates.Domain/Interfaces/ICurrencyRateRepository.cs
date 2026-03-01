@@ -36,4 +36,9 @@ public interface ICurrencyRateRepository
     /// <param name="code">Код валюти (USD, EUR...).</param>
     /// <returns>ID або null якщо валюта не знайдена в довіднику.</returns>
     Task<int?> GetCurrencyIdByCodeAsync(string code);
+
+    /// <summary>
+    /// Додає валюту в довідник якщо її ще немає.
+    /// </summary>
+    Task EnsureCurrencyExistsAsync(string code, string name);
 }

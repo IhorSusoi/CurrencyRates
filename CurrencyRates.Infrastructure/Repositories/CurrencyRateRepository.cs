@@ -21,6 +21,20 @@ public class CurrencyRateRepository : ICurrencyRateRepository
     }
 
     /// <inheritdoc/>
+    public async Task EnsureCurrencyExistsAsync(string code, string name)
+    {
+        var exists = await _db.Query("Currencies")
+            .Where("Code", code)
+            .ExistsAsync();
+
+        if (!exists)
+        {
+            await _db.Query("Currencies").InsertAsync(new { Code = code, Name = name });
+            _logger.LogInformation("Додано нову валюту в довідник: {Code} {Name}", code, name);
+        }
+    }
+
+    /// <inheritdoc/>
     public async Task<IReadOnlyList<CurrencyRate>> GetByDateAsync(DateOnly date)
     {
         var rows = await _db.Query("CurrencyRates as cr")

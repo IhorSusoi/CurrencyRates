@@ -13,7 +13,13 @@ public class CurrencyOptions
     /// Список валют які синхронізуються з НБУ.
     /// За замовчуванням: USD, EUR, DKK, PLN.
     /// </summary>
-    public string[] SupportedCurrencies { get; set; } = ["USD", "EUR", "DKK", "PLN"];
+    public Dictionary<string, string> SupportedCurrencies { get; set; } = new()
+    {
+    { "USD", "Долар США" },
+    { "EUR", "Євро" },
+    { "DKK", "Данська крона" },
+    { "PLN", "Польський злотий" }
+    };
 
     /// <summary>
     /// Час щоденної автоматичної синхронізації у форматі HH:mm.

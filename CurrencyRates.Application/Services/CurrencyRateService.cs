@@ -34,11 +34,16 @@ public class CurrencyRateService : ICurrencyRateService
     /// <inheritdoc/>
     public async Task<IReadOnlyList<CurrencyRate>> GetOrFetchRatesAsync(DateOnly date, SourceType source)
     {
+        foreach (var (code, name) in _options.SupportedCurrencies)
+        {
+            await _repository.EnsureCurrencyExistsAsync(code, name);
+        }
+
         // Дивимось які валюти вже є в БД на цю дату
         var existingCodes = await _repository.GetExistingCurrencyCodesAsync(date);
 
         // Знаходимо яких валют не вистачає
-        var missingCodes = _options.SupportedCurrencies
+        var missingCodes = _options.SupportedCurrencies.Keys
             .Except(existingCodes, StringComparer.OrdinalIgnoreCase)
             .ToList();
 
@@ -62,8 +67,13 @@ public class CurrencyRateService : ICurrencyRateService
 
         _logger.LogInformation("Початок автоматичної синхронізації на дату {Date}", today);
 
+        foreach (var (code, name) in _options.SupportedCurrencies)
+        {
+            await _repository.EnsureCurrencyExistsAsync(code, name);
+        }
+
         var existingCodes = await _repository.GetExistingCurrencyCodesAsync(today);
-        var missingCodes = _options.SupportedCurrencies
+        var missingCodes = _options.SupportedCurrencies.Keys
             .Except(existingCodes, StringComparer.OrdinalIgnoreCase)
             .ToList();
 
