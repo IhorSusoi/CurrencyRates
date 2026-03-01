@@ -1,4 +1,4 @@
-# Крок 1 — збираємо проект
+# Крок 1 — збираємо API
 FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 WORKDIR /src
 
@@ -12,7 +12,7 @@ RUN dotnet restore CurrencyRates.API/CurrencyRates.API.csproj
 COPY . .
 RUN dotnet publish CurrencyRates.API/CurrencyRates.API.csproj -c Release -o /app/publish
 
-# Крок 2 — фінальний образ (легший, без SDK)
+# Крок 2 — фінальний образ без SDK
 FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS final
 WORKDIR /app
 COPY --from=build /app/publish .

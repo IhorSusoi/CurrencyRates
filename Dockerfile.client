@@ -1,0 +1,18 @@
+# Крок 1 — збираємо Blazor WASM
+FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
+WORKDIR /src
+
+COPY CurrencyRates.Client/CurrencyRates.Client.csproj CurrencyRates.Client/
+
+RUN dotnet restore CurrencyRates.Client/CurrencyRates.Client.csproj
+
+COPY CurrencyRates.Client/ CurrencyRates.Client/
+
+RUN dotnet publish CurrencyRates.Client/CurrencyRates.Client.csproj -c Release -o /app/publish
+
+# Крок 2 — nginx роздає статичні файли Blazor
+FROM nginx:alpine AS final
+COPY --from=build /app/publish/wwwroot /usr/share/nginx/html
+COPY nginx.conf /etc/nginx/nginx.conf
+
+EXPOSE 80

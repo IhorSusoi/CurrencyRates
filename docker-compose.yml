@@ -3,11 +3,12 @@ services:
   # --- База даних (легка версія MS SQL) ---
   sqlserver:
     image: mcr.microsoft.com/azure-sql-edge:latest
+    container_name: currencyrates_sqlserver
     environment:
       ACCEPT_EULA: "1"
       MSSQL_SA_PASSWORD: "CurrencyRates_2026!"
-    ports:
-      - "1433:1433"
+    ports: 
+      - 1433:1433
     volumes:
       - sqlserver_data:/var/opt/mssql
     healthcheck:
@@ -17,16 +18,30 @@ services:
       retries: 10
       start_period: 30s
 
-  # --- Наш API ---
+  # --- API ---
   api:
-    build: .
+    build:
+      context: .
+      dockerfile: Dockerfile
     ports:
       - "8080:8080"
     environment:
+      ASPNETCORE_ENVIRONMENT: "Production"
       ConnectionStrings__DefaultConnection: "Server=sqlserver;Database=CurrencyRatesDb;User Id=sa;Password=CurrencyRates_2026!;TrustServerCertificate=True;"
+      AllowedOrigins__0: "http://localhost"
     depends_on:
       sqlserver:
         condition: service_healthy
+
+  # --- Client (Blazor WASM + nginx) ---
+  client:
+    build:
+      context: .
+      dockerfile: Dockerfile.client
+    ports:
+      - "80:80"
+    depends_on:
+      - api
 
 volumes:
   sqlserver_data:

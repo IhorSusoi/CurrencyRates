@@ -2,6 +2,8 @@
   <Folder Name="/Solution Items/">
     <File Path="docker-compose.yml" />
     <File Path="Dockerfile" />
+    <File Path="Dockerfile.client" />
+    <File Path="nginx.conf" />
     <File Path="README.md" />
   </Folder>
   <Project Path="CurrencyRates.API/CurrencyRates.API.csproj" />
