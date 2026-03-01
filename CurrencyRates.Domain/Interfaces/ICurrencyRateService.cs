@@ -26,5 +26,5 @@ public interface ICurrencyRateService
     /// Синхронізує курси на завтрішню дату.
     /// Викликається автоматично по розкладу.
     /// </summary>
-    Task SyncTodayRatesAsync();
+    Task SyncRatesAsync(DateOnly date);
 }

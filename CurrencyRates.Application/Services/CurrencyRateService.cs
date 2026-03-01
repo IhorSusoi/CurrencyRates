@@ -61,31 +61,29 @@ public class CurrencyRateService : ICurrencyRateService
     }
 
     /// <inheritdoc/>
-    public async Task SyncTodayRatesAsync()
+    public async Task SyncRatesAsync(DateOnly date)
     {
-        var today = DateOnly.FromDateTime(DateTime.Today);
-
-        _logger.LogInformation("Початок автоматичної синхронізації на дату {Date}", today);
+        _logger.LogInformation("Початок автоматичної синхронізації на дату {Date}", date);
 
         foreach (var (code, name) in _options.SupportedCurrencies)
         {
             await _repository.EnsureCurrencyExistsAsync(code, name);
         }
 
-        var existingCodes = await _repository.GetExistingCurrencyCodesAsync(today);
+        var existingCodes = await _repository.GetExistingCurrencyCodesAsync(date);
         var missingCodes = _options.SupportedCurrencies.Keys
             .Except(existingCodes, StringComparer.OrdinalIgnoreCase)
             .ToList();
 
         if (missingCodes.Count == 0)
         {
-            _logger.LogInformation("Синхронізація {Date}: всі курси вже є в БД, пропускаємо", today);
+            _logger.LogInformation("Синхронізація {Date}: всі курси вже є в БД, пропускаємо", date);
             return;
         }
 
-        await FetchAndSaveRatesAsync(missingCodes, today, SourceType.Auto);
+        await FetchAndSaveRatesAsync(missingCodes, date, SourceType.Auto);
 
-        _logger.LogInformation("Автоматична синхронізація завершена на дату {Date}", today);
+        _logger.LogInformation("Автоматична синхронізація завершена на дату {Date}", date);
     }
 
     /// <summary>

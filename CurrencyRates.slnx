@@ -1,4 +1,7 @@
 <Solution>
+  <Folder Name="/Solution Items/">
+    <File Path="README.md" />
+  </Folder>
   <Project Path="CurrencyRates.API/CurrencyRates.API.csproj" />
   <Project Path="CurrencyRates.Application/CurrencyRates.Application.csproj" />
   <Project Path="CurrencyRates.Client/CurrencyRates.Client.csproj" />

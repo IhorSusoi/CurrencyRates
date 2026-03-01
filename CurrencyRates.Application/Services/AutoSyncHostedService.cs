@@ -56,7 +56,7 @@ public class AutoSyncHostedService : BackgroundService
         {
             using var scope = _scopeFactory.CreateScope();
             var service = scope.ServiceProvider.GetRequiredService<ICurrencyRateService>();
-            await service.SyncTodayRatesAsync();
+            await service.SyncRatesAsync(DateOnly.FromDateTime(DateTime.Today));
         }
         catch (Exception ex)
         {
@@ -71,7 +71,7 @@ public class AutoSyncHostedService : BackgroundService
         {
             using var scope = _scopeFactory.CreateScope();
             var service = scope.ServiceProvider.GetRequiredService<ICurrencyRateService>();
-            await service.SyncTodayRatesAsync();
+            await service.SyncRatesAsync(DateOnly.FromDateTime(DateTime.Today.AddDays(1)));
         }
         catch (Exception ex)
         {
