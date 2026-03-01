@@ -190,6 +190,7 @@ dotnet run --project CurrencyRates.Client
 
 | Сервіс | URL |
 |---|---|
+| Клієнт (UI) Docker | http://localhost |
 | Клієнт (UI) | https://localhost:CLIENT_PORT |
 | Swagger (API документація) | https://localhost:API_PORT/swagger |
 
