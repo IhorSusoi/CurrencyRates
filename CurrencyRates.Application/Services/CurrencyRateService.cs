@@ -51,7 +51,7 @@ public class CurrencyRateService : ICurrencyRateService
         {
             _logger.LogInformation(
                 "Дата {Date}: в БД відсутні валюти {Currencies}. Запит до НБУ...",
-                date, string.Join(", ", missingCodes));
+                date.ToString("dd/MM/yyyy"), string.Join(", ", missingCodes));
 
             await FetchAndSaveRatesAsync(missingCodes, date, source);
         }
@@ -63,7 +63,7 @@ public class CurrencyRateService : ICurrencyRateService
     /// <inheritdoc/>
     public async Task SyncRatesAsync(DateOnly date)
     {
-        _logger.LogInformation("Початок автоматичної синхронізації на дату {Date}", date);
+        _logger.LogInformation("Початок автоматичної синхронізації на дату {Date}", date.ToString("dd/MM/yyyy"));
 
         foreach (var (code, name) in _options.SupportedCurrencies)
         {
@@ -77,13 +77,13 @@ public class CurrencyRateService : ICurrencyRateService
 
         if (missingCodes.Count == 0)
         {
-            _logger.LogInformation("Синхронізація {Date}: всі курси вже є в БД, пропускаємо", date);
+            _logger.LogInformation("Синхронізація {Date}: всі курси вже є в БД, пропускаємо", date.ToString("dd/MM/yyyy"));
             return;
         }
 
         await FetchAndSaveRatesAsync(missingCodes, date, SourceType.Auto);
 
-        _logger.LogInformation("Автоматична синхронізація завершена на дату {Date}", date);
+        _logger.LogInformation("Автоматична синхронізація завершена на дату {Date}", date.ToString("dd/MM/yyyy"));
     }
 
     /// <summary>
@@ -116,17 +116,17 @@ public class CurrencyRateService : ICurrencyRateService
                     rate.CurrencyId = currencyId.Value;
                     rate.Currency = new Currency { Code = code };
                     fetchedRates.Add(rate);
-                    _logger.LogInformation("Отримано курс {Code} = {Rate} на {Date}", code, rate.Rate, date);
+                    _logger.LogInformation("Отримано курс {Code} = {Rate} на {Date}", code, rate.Rate, date.ToString("dd/MM/yyyy"));
                 }
                 else
                 {
-                    _logger.LogWarning("НБУ не повернув курс для {Code} на дату {Date}", code, date);
+                    _logger.LogWarning("НБУ не повернув курс для {Code} на дату {Date}", code, date.ToString("dd/MM/yyyy"));
                 }
             }
             catch (Exception ex)
             {
                 // Одна валюта не вийшла — не зупиняємо решту
-                _logger.LogError(ex, "Помилка отримання курсу {Code} на дату {Date}", code, date);
+                _logger.LogError(ex, "Помилка отримання курсу {Code} на дату {Date}", code, date.ToString("dd/MM/yyyy"));
             }
         }
 

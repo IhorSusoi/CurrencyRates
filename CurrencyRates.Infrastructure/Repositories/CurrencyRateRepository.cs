@@ -108,7 +108,7 @@ public class CurrencyRateRepository : ICurrencyRateRepository
                 {
                     _logger.LogInformation(
                         "Курс для {Code} на {Date} вже є в БД, пропускаємо",
-                        rate.Currency?.Code ?? $"CurrencyId={rate.CurrencyId}", rate.RateDate);
+                        rate.Currency?.Code ?? $"CurrencyId={rate.CurrencyId}", rate.RateDate.ToString("dd/MM/yyyy"));
                     continue;
                 }
 
@@ -123,13 +123,13 @@ public class CurrencyRateRepository : ICurrencyRateRepository
 
                 _logger.LogInformation(
                     "Збережено курс {Code} = {Rate} на {Date}",
-                    rate.Currency?.Code ?? $"CurrencyId={rate.CurrencyId}", rate.Rate, rate.RateDate);
+                    rate.Currency?.Code ?? $"CurrencyId={rate.CurrencyId}", rate.Rate, rate.RateDate.ToString("dd/MM/yyyy"));
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex,
                     "Помилка збереження курсу {Code} на {Date}",
-                    rate.CurrencyId, rate.RateDate);
+                    rate.CurrencyId, rate.RateDate.ToString("dd/MM/yyyy"));
             }
         }
     }

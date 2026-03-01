@@ -35,7 +35,7 @@ public class CurrencyRatesController : ControllerBase
     [ProducesResponseType(StatusCodes.Status503ServiceUnavailable)]
     public async Task<IActionResult> GetRates([FromQuery] DateOnly date)
     {
-        _logger.LogInformation("Запит курсів на дату {Date}", date);
+        _logger.LogInformation("Запит курсів на дату {Date}", date.ToString("dd/MM/yyyy"));
 
         try
         {
@@ -56,7 +56,7 @@ public class CurrencyRatesController : ControllerBase
         catch (HttpRequestException ex)
         {
             // НБУ недоступний
-            _logger.LogError(ex, "НБУ API недоступний при запиті на дату {Date}", date);
+            _logger.LogError(ex, "НБУ API недоступний при запиті на дату {Date}", date.ToString("dd/MM/yyyy"));
 
             return StatusCode(
                 StatusCodes.Status503ServiceUnavailable,
