@@ -61,7 +61,7 @@ public class CurrencyRateService : ICurrencyRateService
     }
 
     /// <inheritdoc/>
-    public async Task SyncRatesAsync(DateOnly date)
+    public async Task<bool> SyncRatesAsync(DateOnly date)
     {
         _logger.LogInformation("Початок автоматичної синхронізації на дату {Date}", date.ToString("dd/MM/yyyy"));
 
@@ -78,12 +78,24 @@ public class CurrencyRateService : ICurrencyRateService
         if (missingCodes.Count == 0)
         {
             _logger.LogInformation("Синхронізація {Date}: всі курси вже є в БД, пропускаємо", date.ToString("dd/MM/yyyy"));
-            return;
+            return true;
         }
 
         await FetchAndSaveRatesAsync(missingCodes, date, SourceType.Auto);
 
+        // Перевіряємо чи всі курси тепер є в БД
+        var stillMissing = await _repository.GetExistingCurrencyCodesAsync(date);
+        var allSynced = _options.SupportedCurrencies.Keys
+            .Except(stillMissing, StringComparer.OrdinalIgnoreCase)
+            .ToList().Count == 0;
+
+        if (!allSynced)
+        {
+            _logger.LogWarning("Синхронізація {Date}: не всі курси отримані з НБУ", date.ToString("dd/MM/yyyy"));
+        }
+
         _logger.LogInformation("Автоматична синхронізація завершена на дату {Date}", date.ToString("dd/MM/yyyy"));
+        return allSynced;
     }
 
     /// <summary>

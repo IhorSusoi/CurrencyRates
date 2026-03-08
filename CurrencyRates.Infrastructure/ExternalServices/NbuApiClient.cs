@@ -43,9 +43,6 @@ public class NbuApiClient : INbuApiClient
 
         if(rates is null || rates.Count == 0)
         {
-            _logger.LogWarning(
-                "НБУ не повернув дані для {Code} на {Date}",
-                currencyCode, date);
             return null;
         }
 

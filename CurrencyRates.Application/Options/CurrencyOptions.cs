@@ -29,4 +29,11 @@ public class CurrencyOptions
 
     /// <summary>Базова адреса API Національного банку України.</summary>
     public string NbuApiBaseUrl { get; set; } = "https://bank.gov.ua/NBUStatService/v1/statdirectory/exchange";
+
+    /// <summary>
+    /// Кількість повторних спроб синхронізації за 24 години,
+    /// якщо НБУ не повернув курси на вказану дату.
+    /// За замовчуванням: 3.
+    /// </summary>
+    public int SyncRetryCount { get; set; } = 3;
 }

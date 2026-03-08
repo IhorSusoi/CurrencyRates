@@ -1,40 +1,44 @@
-﻿@page "/"
+@page "/"
 @using CurrencyRates.Client.Services
 @inject CurrencyRates.Client.Services.CurrencyRatesApiClient ApiClient
 
 <PageTitle>Курси валют НБУ</PageTitle>
 
-<h3>Курси валют НБУ</h3>
+<h3 style="text-align: center; font-size: clamp(1.1rem, 4vw, 1.75rem); margin-bottom: 16px;">
+    Курси валют НБУ
+</h3>
 
-<div style="display: flex; align-items: flex-end; justify-content: center; gap: 16px; margin-bottom: 24px;">
-    <div>
-        <label>Дата дії курсу</label>
-        <RadzenDatePicker @bind-Value="selectedDate"
+<RadzenStack Orientation="Orientation.Horizontal" Wrap="FlexWrap.Wrap"
+             AlignItems="AlignItems.End" JustifyContent="JustifyContent.Center"
+             Gap="12px" Style="margin-bottom: 24px;">
+    <RadzenStack Gap="4px">
+        <RadzenText TextStyle="TextStyle.Body2" Text="Дата дії курсу" />
+        <RadzenDatePicker @bind-Value="this.selectedDate"
                           DateFormat="yyyy-MM-dd"
-                          Style="display:block; width: 200px;" />
-    </div>
+                          Style="width: 100%; min-width: 180px; max-width: 240px;" />
+    </RadzenStack>
 
     <RadzenButton Text="Показати"
                   Icon="search"
-                  Click="LoadRates"
-                  Disabled="isLoading" />
-</div>
+                  Click="this.LoadRatesAsync"
+                  Disabled="this.isLoading" />
+</RadzenStack>
 
-@if (isLoading)
+@if (this.isLoading)
 {
     <RadzenProgressBar Value="100" ShowValue="false" Mode="ProgressBarMode.Indeterminate" />
 }
 
-@if (errorMessage is not null)
+@if (this.errorMessage is not null)
 {
     <RadzenAlert AlertStyle="AlertStyle.Danger" ShowIcon="true">
-        @errorMessage
+        @this.errorMessage
     </RadzenAlert>
 }
 
-@if (rates is not null)
+@if (this.rates is not null)
 {
-    @if (rates.Count == 0)
+    @if (this.rates.Count == 0)
     {
         <RadzenAlert AlertStyle="AlertStyle.Warning" ShowIcon="true">
             Немає даних на вибрану дату.
@@ -42,41 +46,45 @@
     }
     else
     {
-        <RadzenDataGrid Data="rates" TItem="CurrencyRateModel" AllowSorting="true">
-            <Columns>
-                <RadzenDataGridColumn TItem="CurrencyRateModel"
-                                      Property="CurrencyCode"
-                                      Title="Валюта"
-                                      Width="100rm" />
+        <div style="overflow-x: auto; -webkit-overflow-scrolling: touch;">
+            <RadzenDataGrid Data="this.rates" TItem="CurrencyRateModel"
+                            AllowSorting="true" Density="Density.Compact">
+                <Columns>
+                    <RadzenDataGridColumn TItem="CurrencyRateModel"
+                                          Property="CurrencyCode"
+                                          Title="Валюта"
+                                          MinWidth="80px" />
 
-                <RadzenDataGridColumn TItem="CurrencyRateModel"
-                                      Property="CurrencyName"
-                                      Title="Назва валюти"
-                                      Width="300rm" />
+                    <RadzenDataGridColumn TItem="CurrencyRateModel"
+                                          Property="CurrencyName"
+                                          Title="Назва валюти"
+                                          MinWidth="150px" />
 
-                <RadzenDataGridColumn TItem="CurrencyRateModel"
-                                      Property="Rate"
-                                      Title="Курс (UAH)"
-                                      Width="130rm"
-                                      FormatString="{0:F4}" />
+                    <RadzenDataGridColumn TItem="CurrencyRateModel"
+                                          Property="Rate"
+                                          Title="Курс (UAH)"
+                                          MinWidth="100px"
+                                          FormatString="{0:F4}" />
 
-                <RadzenDataGridColumn TItem="CurrencyRateModel"
-                                      Property="RateDate"
-                                      Title="Дата дії курсу"
-                                      Width="130rm"
-                                      FormatString="{0:yyyy-MM-dd}" />
+                    <RadzenDataGridColumn TItem="CurrencyRateModel"
+                                          Property="RateDate"
+                                          Title="Дата дії курсу"
+                                          MinWidth="120px"
+                                          FormatString="{0:yyyy-MM-dd}" />
 
-                <RadzenDataGridColumn TItem="CurrencyRateModel"
-                                      Property="Source"
-                                      Title="Джерело"
-                                      Width="100rm" />
+                    <RadzenDataGridColumn TItem="CurrencyRateModel"
+                                          Property="Source"
+                                          Title="Джерело"
+                                          MinWidth="80px" />
 
-                <RadzenDataGridColumn TItem="CurrencyRateModel"
-                                      Property="CreatedAt"
-                                      Title="Завантажено в БД"
-                                      FormatString="{0:yyyy-MM-dd HH:mm:ss}" />
-            </Columns>
-        </RadzenDataGrid>
+                    <RadzenDataGridColumn TItem="CurrencyRateModel"
+                                          Property="CreatedAt"
+                                          Title="Завантажено в БД"
+                                          MinWidth="160px"
+                                          FormatString="{0:yyyy-MM-dd HH:mm:ss}" />
+                </Columns>
+            </RadzenDataGrid>
+        </div>
     }
 }
 
@@ -88,20 +96,20 @@
 
     protected override async Task OnInitializedAsync()
     {
-        await LoadRates();
+        await this.LoadRatesAsync();
     }
 
-    private async Task LoadRates()
+    private async Task LoadRatesAsync()
     {
-        isLoading = true;
-        errorMessage = null;
-        rates = null;
+        this.isLoading = true;
+        this.errorMessage = null;
+        this.rates = null;
 
-        var date = DateOnly.FromDateTime(selectedDate);
-        var (result, error) = await ApiClient.GetRatesAsync(date);
+        var date = DateOnly.FromDateTime(this.selectedDate);
+        var (result, error) = await this.ApiClient.GetRatesAsync(date);
 
-        rates = result;
-        errorMessage = error;
-        isLoading = false;
+        this.rates = result;
+        this.errorMessage = error;
+        this.isLoading = false;
     }
 }

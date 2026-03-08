@@ -1,4 +1,4 @@
-﻿using CurrencyRates.Application.Options;
+using CurrencyRates.Application.Options;
 using CurrencyRates.Domain.Interfaces;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -10,33 +10,36 @@ namespace CurrencyRates.Application.Services;
 
 /// <summary>
 /// Фонова служба яка автоматично синхронізує курси валют щодня о 16:00.
-/// Також робить перевірку при старті застосунку.
+/// Також робить перевірку при старті застосунку (сьогодні + завтра).
+/// Якщо НБУ не повернув курси — повторює спроби (за замовчуванням 3 рази за 24 години).
 /// </summary>
 public class AutoSyncHostedService : BackgroundService
 {
-    private readonly IServiceScopeFactory _scopeFactory;
-    private readonly ILogger<AutoSyncHostedService> _logger;
-    private readonly TimeOnly _syncTime;
+    private readonly IServiceScopeFactory scopeFactory;
+    private readonly ILogger<AutoSyncHostedService> logger;
+    private readonly TimeOnly syncTime;
+    private readonly int retryCount;
 
     public AutoSyncHostedService(
         IServiceScopeFactory scopeFactory,
         ILogger<AutoSyncHostedService> logger,
         IOptions<CurrencyOptions> options)
     {
-        _scopeFactory = scopeFactory;
-        _logger = logger;
-        _syncTime = TimeOnly.Parse(options.Value.DailySyncTime, CultureInfo.InvariantCulture);
+        this.scopeFactory = scopeFactory;
+        this.logger = logger;
+        this.syncTime = TimeOnly.Parse(options.Value.DailySyncTime, CultureInfo.InvariantCulture);
+        this.retryCount = options.Value.SyncRetryCount;
     }
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        await RunStartupSyncAsync();
+        await this.RunStartupSyncAsync(stoppingToken);
 
         while (!stoppingToken.IsCancellationRequested)
         {
-            var delay = CalculateDelayUntilNextSync();
+            var delay = this.CalculateDelayUntilNextSync();
 
-            _logger.LogInformation(
+            this.logger.LogInformation(
                 "Наступна синхронізація курсів через {Hours}г {Minutes}хв",
                 (int)delay.TotalHours, delay.Minutes);
 
@@ -45,44 +48,99 @@ public class AutoSyncHostedService : BackgroundService
             if (stoppingToken.IsCancellationRequested)
                 break;
 
-            await RunDailySyncAsync();
+            await this.RunDailySyncAsync(stoppingToken);
         }
     }
 
-    private async Task RunStartupSyncAsync()
+    /// <summary>
+    /// Синхронізує курси при старті: сьогоднішня дата + завтрашня дата.
+    /// Для кожної дати виконує повторні спроби якщо НБУ не повернув курси.
+    /// </summary>
+    private async Task RunStartupSyncAsync(CancellationToken stoppingToken)
     {
-        _logger.LogInformation("Перевірка курсів при старті застосунку...");
-        try
-        {
-            using var scope = _scopeFactory.CreateScope();
-            var service = scope.ServiceProvider.GetRequiredService<ICurrencyRateService>();
-            await service.SyncRatesAsync(DateOnly.FromDateTime(DateTime.Today));
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Помилка синхронізації при старті");
-        }
+        this.logger.LogInformation("Перевірка курсів при старті застосунку...");
+
+        var today = DateOnly.FromDateTime(DateTime.Today);
+        var tomorrow = today.AddDays(1);
+
+        await this.SyncWithRetryAsync(today, stoppingToken);
+        await this.SyncWithRetryAsync(tomorrow, stoppingToken);
     }
 
-    private async Task RunDailySyncAsync()
+    /// <summary>
+    /// Планова щоденна синхронізація на завтрашню дату з повторними спробами.
+    /// </summary>
+    private async Task RunDailySyncAsync(CancellationToken stoppingToken)
     {
-        _logger.LogInformation("Початок планової щоденної синхронізації");
-        try
+        this.logger.LogInformation("Початок планової щоденної синхронізації");
+
+        var tomorrow = DateOnly.FromDateTime(DateTime.Today.AddDays(1));
+        await this.SyncWithRetryAsync(tomorrow, stoppingToken);
+    }
+
+    /// <summary>
+    /// Синхронізує курси на вказану дату з повторними спробами.
+    /// Якщо НБУ не повернув всі курси — повторює до <see cref="retryCount"/> разів
+    /// з рівномірним інтервалом протягом 24 годин.
+    /// </summary>
+    private async Task SyncWithRetryAsync(DateOnly date, CancellationToken stoppingToken)
+    {
+        var retryInterval = TimeSpan.FromHours(24.0 / this.retryCount);
+
+        for (int attempt = 1; attempt <= this.retryCount; attempt++)
         {
-            using var scope = _scopeFactory.CreateScope();
-            var service = scope.ServiceProvider.GetRequiredService<ICurrencyRateService>();
-            await service.SyncRatesAsync(DateOnly.FromDateTime(DateTime.Today.AddDays(1)));
+            if (stoppingToken.IsCancellationRequested)
+                break;
+
+            try
+            {
+                this.logger.LogInformation(
+                    "Синхронізація {Date}: спроба {Attempt} з {Total}",
+                    date.ToString("dd/MM/yyyy"), attempt, this.retryCount);
+
+                using var scope = this.scopeFactory.CreateScope();
+                var service = scope.ServiceProvider.GetRequiredService<ICurrencyRateService>();
+                var allSynced = await service.SyncRatesAsync(date);
+
+                if (allSynced)
+                {
+                    this.logger.LogInformation(
+                        "Синхронізація {Date}: всі курси успішно отримані (спроба {Attempt})",
+                        date.ToString("dd/MM/yyyy"), attempt);
+                    return;
+                }
+
+                if (attempt < this.retryCount)
+                {
+                    this.logger.LogWarning(
+                        "Синхронізація {Date}: не всі курси отримані. Наступна спроба через {Hours}г",
+                        date.ToString("dd/MM/yyyy"), retryInterval.TotalHours);
+
+                    await Task.Delay(retryInterval, stoppingToken);
+                }
+            }
+            catch (Exception ex)
+            {
+                this.logger.LogError(ex,
+                    "Помилка синхронізації {Date} (спроба {Attempt} з {Total})",
+                    date.ToString("dd/MM/yyyy"), attempt, this.retryCount);
+
+                if (attempt < this.retryCount)
+                {
+                    await Task.Delay(retryInterval, stoppingToken);
+                }
+            }
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Помилка щоденної синхронізації");
-        }
+
+        this.logger.LogWarning(
+            "Синхронізація {Date}: вичерпано всі {Total} спроби",
+            date.ToString("dd/MM/yyyy"), this.retryCount);
     }
 
     private TimeSpan CalculateDelayUntilNextSync()
     {
         var now = DateTime.Now;
-        var todaySync = DateTime.Today.Add(_syncTime.ToTimeSpan());
+        var todaySync = DateTime.Today.Add(this.syncTime.ToTimeSpan());
         var nextSync = now < todaySync ? todaySync : todaySync.AddDays(1);
         return nextSync - now;
     }
