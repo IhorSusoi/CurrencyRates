@@ -69,7 +69,13 @@ public class SyncNotificationService : ISyncNotificationService
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"FCM token registration failed: {ex.Message}");
+            System.Diagnostics.Debug.WriteLine($"FCM token registration failed: {ex}");
+            await MainThread.InvokeOnMainThreadAsync(async () =>
+            {
+                var page = Application.Current?.Windows.FirstOrDefault()?.Page;
+                if (page is not null)
+                    await page.DisplayAlertAsync("FCM Debug", $"Token registration failed: {ex.Message}", "OK");
+            });
         }
     }
 
