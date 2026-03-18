@@ -37,8 +37,9 @@ public static class InfrastructureServiceExtensions
             return new QueryFactory(connection, new SqlServerCompiler());
         });
 
-        // --- Репозиторій ---
+        // --- Репозиторії ---
         services.AddScoped<ICurrencyRateRepository, CurrencyRateRepository>();
+        services.AddScoped<IDeviceTokenRepository, DeviceTokenRepository>();
 
         // --- НБУ API клієнт з Polly retry ---
         var currencyOptions = configuration.GetSection(CurrencyOptions.SectionName)

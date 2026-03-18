@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200">
+  <defs>
+    <linearGradient id="ringGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#00d4aa"/>
+      <stop offset="100%" style="stop-color:#00ff88"/>
+    </linearGradient>
+    <linearGradient id="upGrad" x1="0%" y1="100%" x2="0%" y2="0%">
+      <stop offset="0%" style="stop-color:#00d4aa"/>
+      <stop offset="100%" style="stop-color:#00ffcc"/>
+    </linearGradient>
+    <linearGradient id="downGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#ff4d6d"/>
+      <stop offset="100%" style="stop-color:#ff8fa3"/>
+    </linearGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="2.5" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- Outer ring track -->
+  <circle cx="100" cy="100" r="88" fill="none" stroke="#1a2d45" stroke-width="2"/>
+
+  <!-- Glowing arc -->
+  <path d="M 100 12 A 88 88 0 1 1 12 100"
+        fill="none" stroke="url(#ringGrad)" stroke-width="5"
+        stroke-linecap="round" filter="url(#glow)" opacity="0.9"/>
+
+  <!-- Arc end dot -->
+  <circle cx="12" cy="100" r="5" fill="#00d4aa" filter="url(#glow)"/>
+
+  <!-- Dollar sign -->
+  <text x="100" y="122" text-anchor="middle"
+        font-family="Georgia, serif"
+        font-size="80" font-weight="bold"
+        fill="#ffffff" filter="url(#glow)">$</text>
+
+  <!-- Arrow up -->
+  <polygon points="148,72 156,86 140,86" fill="url(#upGrad)" filter="url(#glow)"/>
+  <rect x="149" y="86" width="6" height="14" rx="2" fill="url(#upGrad)"/>
+
+  <!-- Arrow down -->
+  <polygon points="52,128 60,114 44,114" fill="url(#downGrad)" filter="url(#glow)"/>
+  <rect x="45" y="100" width="6" height="14" rx="2" fill="url(#downGrad)"/>
+
+</svg>

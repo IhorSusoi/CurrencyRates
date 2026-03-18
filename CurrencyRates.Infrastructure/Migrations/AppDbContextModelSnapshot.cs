@@ -107,6 +107,35 @@ namespace CurrencyRates.Infrastructure.Migrations
                     b.ToTable("CurrencyRates", (string)null);
                 });
 
+            modelBuilder.Entity("CurrencyRates.Domain.Entities.DeviceToken", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Platform")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<string>("Token")
+                        .IsRequired()
+                        .HasMaxLength(512)
+                        .HasColumnType("nvarchar(512)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Token")
+                        .IsUnique();
+
+                    b.ToTable("DeviceTokens", (string)null);
+                });
+
             modelBuilder.Entity("CurrencyRates.Domain.Entities.CurrencyRate", b =>
                 {
                     b.HasOne("CurrencyRates.Domain.Entities.Currency", "Currency")

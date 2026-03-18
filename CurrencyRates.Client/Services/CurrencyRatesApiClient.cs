@@ -11,6 +11,11 @@ public class CurrencyRatesApiClient
 {
     private readonly HttpClient _httpClient;
 
+    /// <summary>
+    /// The base URL of the API, used by other services to construct hub URLs.
+    /// </summary>
+    public string BaseUrl => _httpClient.BaseAddress?.ToString() ?? "";
+
     public CurrencyRatesApiClient(HttpClient httpClient)
     {
         _httpClient = httpClient;

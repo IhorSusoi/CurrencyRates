@@ -1,6 +1,9 @@
 @page "/"
 @using CurrencyRates.Client.Services
 @inject CurrencyRates.Client.Services.CurrencyRatesApiClient ApiClient
+@inject SyncNotificationService SyncNotification
+@inject Radzen.NotificationService NotificationService
+@implements IAsyncDisposable
 
 <PageTitle>Курси валют НБУ</PageTitle>
 
@@ -97,6 +100,30 @@
     protected override async Task OnInitializedAsync()
     {
         await this.LoadRatesAsync();
+
+        // Start SignalR connection for real-time sync notifications
+        var hubUrl = $"{this.ApiClient.BaseUrl}hubs/currency-rates";
+        this.SyncNotification.OnRatesSynced += this.HandleRatesSynced;
+        await this.SyncNotification.StartAsync(hubUrl);
+    }
+
+    private async void HandleRatesSynced(string date, int ratesCount)
+    {
+        await InvokeAsync(async () =>
+        {
+            // Show toast notification
+            this.NotificationService.Notify(new Radzen.NotificationMessage
+            {
+                Severity = Radzen.NotificationSeverity.Success,
+                Summary = "Курси оновлено",
+                Detail = $"Синхронізовано {ratesCount} курсів на {date}",
+                Duration = 5000
+            });
+
+            // Auto-refresh the data grid
+            await this.LoadRatesAsync();
+            StateHasChanged();
+        });
     }
 
     private async Task LoadRatesAsync()
@@ -111,5 +138,11 @@
         this.rates = result;
         this.errorMessage = error;
         this.isLoading = false;
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        this.SyncNotification.OnRatesSynced -= this.HandleRatesSynced;
+        await this.SyncNotification.DisposeAsync();
     }
 }

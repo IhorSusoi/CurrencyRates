@@ -18,17 +18,20 @@ public class CurrencyRateService : ICurrencyRateService
     private readonly INbuApiClient _nbuApiClient;
     private readonly ILogger<CurrencyRateService> _logger;
     private readonly CurrencyOptions _options;
+    private readonly IRateSyncNotifier rateSyncNotifier;
 
     public CurrencyRateService(
         ICurrencyRateRepository repository,
         INbuApiClient nbuApiClient,
         ILogger<CurrencyRateService> logger,
-        IOptions<CurrencyOptions> options)
+        IOptions<CurrencyOptions> options,
+        IRateSyncNotifier rateSyncNotifier)
     {
         _repository = repository;
         _nbuApiClient = nbuApiClient;
         _logger = logger;
         _options = options.Value;
+        this.rateSyncNotifier = rateSyncNotifier;
     }
 
     /// <inheritdoc/>
@@ -54,6 +57,9 @@ public class CurrencyRateService : ICurrencyRateService
                 date.ToString("dd/MM/yyyy"), string.Join(", ", missingCodes));
 
             await FetchAndSaveRatesAsync(missingCodes, date, source);
+
+            // Notify connected clients that new rates were fetched
+            await this.rateSyncNotifier.NotifySyncCompletedAsync(date, missingCodes.Count);
         }
 
         // Повертаємо все що є в БД (і старе і щойно завантажене)
@@ -92,6 +98,11 @@ public class CurrencyRateService : ICurrencyRateService
         if (!allSynced)
         {
             _logger.LogWarning("Синхронізація {Date}: не всі курси отримані з НБУ", date.ToString("dd/MM/yyyy"));
+        }
+        else
+        {
+            // Notify connected clients that sync completed successfully
+            await this.rateSyncNotifier.NotifySyncCompletedAsync(date, _options.SupportedCurrencies.Count);
         }
 
         _logger.LogInformation("Автоматична синхронізація завершена на дату {Date}", date.ToString("dd/MM/yyyy"));
