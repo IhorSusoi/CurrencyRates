@@ -15,6 +15,7 @@ public class AppDbContext : DbContext
 
     public DbSet<CurrencyRate> CurrencyRates { get; set; }
     public DbSet<Currency> Currencies { get; set; }
+    public DbSet<DeviceToken> DeviceTokens { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -71,6 +72,26 @@ public class AppDbContext : DbContext
 
             // Унікальний індекс — не може бути двох курсів для однієї валюти на одну дату
             entity.HasIndex(e => new { e.CurrencyId, e.RateDate }).IsUnique();
+        });
+
+        // --- Таблиця DeviceTokens (FCM токени для push-сповіщень) ---
+        modelBuilder.Entity<DeviceToken>(entity =>
+        {
+            entity.ToTable("DeviceTokens");
+            entity.HasKey(e => e.Id);
+
+            entity.Property(e => e.Token)
+                .IsRequired()
+                .HasMaxLength(512);
+
+            entity.Property(e => e.Platform)
+                .IsRequired()
+                .HasMaxLength(20);
+
+            entity.Property(e => e.CreatedAt)
+                .IsRequired();
+
+            entity.HasIndex(e => e.Token).IsUnique();
         });
     }
 }

@@ -1,0 +1,188 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:viewmodels="clr-namespace:CurrencyRates.Mobile.ViewModels"
+             xmlns:models="clr-namespace:CurrencyRates.Mobile.Models"
+             x:Class="CurrencyRates.Mobile.Views.MainPage"
+             x:DataType="viewmodels:CurrencyRatesViewModel"
+             Title="Currency Rates"
+             BackgroundColor="#F5F5F5">
+
+    <Grid RowDefinitions="Auto,Auto,Auto,*" Padding="16" RowSpacing="12">
+
+        <!-- Header -->
+        <VerticalStackLayout Grid.Row="0" Spacing="4">
+            <Label Text="Currency Rates"
+                   FontSize="28"
+                   FontAttributes="Bold"
+                   TextColor="#1A1A2E"
+                   HorizontalOptions="Center" />
+            <Label Text="Exchange rates relative to UAH"
+                   FontSize="14"
+                   TextColor="#666666"
+                   HorizontalOptions="Center" />
+        </VerticalStackLayout>
+
+        <!-- Date Picker and Buttons -->
+        <Frame Grid.Row="1"
+               BackgroundColor="White"
+               CornerRadius="12"
+               Padding="16"
+               HasShadow="True"
+               BorderColor="Transparent">
+            <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="10">
+                <DatePicker Date="{Binding SelectedDate}"
+                            MinimumDate="1990-01-01"
+                            MaximumDate="2030-12-31"
+                            FontSize="16"
+                            Format="dd/MM/yyyy"
+                            VerticalOptions="Center"
+                            DateSelected="OnDateSelected" />
+
+                <Button Grid.Column="1"
+                        Text="Refresh"
+                        Command="{Binding LoadRatesCommand}"
+                        BackgroundColor="#3498DB"
+                        TextColor="White"
+                        FontSize="14"
+                        CornerRadius="8"
+                        HeightRequest="40"
+                        Padding="12,0" />
+
+                <Button Grid.Column="2"
+                        Text="Sync"
+                        Command="{Binding SyncCommand}"
+                        BackgroundColor="#2ECC71"
+                        TextColor="White"
+                        FontSize="14"
+                        CornerRadius="8"
+                        HeightRequest="40"
+                        Padding="12,0" />
+            </Grid>
+        </Frame>
+
+        <!-- Status / Error Messages -->
+        <VerticalStackLayout Grid.Row="2" Spacing="4">
+            <Frame BackgroundColor="#FFEBEE"
+                   CornerRadius="8"
+                   Padding="12"
+                   HasShadow="False"
+                   BorderColor="#EF9A9A"
+                   IsVisible="{Binding HasError}">
+                <Label Text="{Binding ErrorMessage}"
+                       TextColor="#C62828"
+                       FontSize="14" />
+            </Frame>
+
+            <Frame BackgroundColor="#E8F5E9"
+                   CornerRadius="8"
+                   Padding="12"
+                   HasShadow="False"
+                   BorderColor="#A5D6A7"
+                   IsVisible="{Binding StatusMessage, Converter={StaticResource IsNotNullConverter}}">
+                <Label Text="{Binding StatusMessage}"
+                       TextColor="#2E7D32"
+                       FontSize="14" />
+            </Frame>
+        </VerticalStackLayout>
+
+        <!-- Loading Indicator -->
+        <ActivityIndicator Grid.Row="3"
+                           IsRunning="{Binding IsLoading}"
+                           IsVisible="{Binding IsLoading}"
+                           Color="#3498DB"
+                           HeightRequest="40"
+                           VerticalOptions="Center"
+                           HorizontalOptions="Center" />
+
+        <!-- Currency Rates List -->
+        <RefreshView Grid.Row="3"
+                     Command="{Binding RefreshRatesCommand}"
+                     IsRefreshing="{Binding IsRefreshing}"
+                     IsVisible="{Binding IsLoading, Converter={StaticResource InvertedBoolConverter}}">
+            <CollectionView ItemsSource="{Binding Rates}"
+                            SelectionMode="None">
+                <CollectionView.EmptyView>
+                    <VerticalStackLayout HorizontalOptions="Center"
+                                         VerticalOptions="Center"
+                                         Spacing="8"
+                                         Padding="20">
+                        <Label Text="No rates available"
+                               FontSize="18"
+                               TextColor="#999999"
+                               HorizontalOptions="Center" />
+                        <Label Text="Try selecting a different date or refreshing"
+                               FontSize="14"
+                               TextColor="#BBBBBB"
+                               HorizontalOptions="Center" />
+                    </VerticalStackLayout>
+                </CollectionView.EmptyView>
+
+                <CollectionView.ItemTemplate>
+                    <DataTemplate x:DataType="models:CurrencyRateDto">
+                        <Frame Margin="0,4"
+                               Padding="16"
+                               CornerRadius="12"
+                               BackgroundColor="White"
+                               HasShadow="True"
+                               BorderColor="Transparent">
+                            <Grid ColumnDefinitions="Auto,*,Auto" RowDefinitions="Auto,Auto" ColumnSpacing="12" RowSpacing="4">
+
+                                <!-- Currency Code Badge -->
+                                <Frame Grid.RowSpan="2"
+                                       BackgroundColor="#1A1A2E"
+                                       CornerRadius="8"
+                                       Padding="12,8"
+                                       HasShadow="False"
+                                       VerticalOptions="Center"
+                                       BorderColor="Transparent">
+                                    <Label Text="{Binding CurrencyCode}"
+                                           TextColor="White"
+                                           FontSize="16"
+                                           FontAttributes="Bold"
+                                           HorizontalOptions="Center"
+                                           VerticalOptions="Center" />
+                                </Frame>
+
+                                <!-- Currency Name -->
+                                <Label Grid.Column="1"
+                                       Grid.Row="0"
+                                       Text="{Binding CurrencyName}"
+                                       FontSize="16"
+                                       FontAttributes="Bold"
+                                       TextColor="#1A1A2E"
+                                       VerticalOptions="End" />
+
+                                <!-- Source and Date -->
+                                <HorizontalStackLayout Grid.Column="1" Grid.Row="1" Spacing="8">
+                                    <Label Text="{Binding Source}"
+                                           FontSize="12"
+                                           TextColor="#999999" />
+                                    <Label Text="{Binding RateDate, StringFormat='{0:dd.MM.yyyy}'}"
+                                           FontSize="12"
+                                           TextColor="#999999" />
+                                </HorizontalStackLayout>
+
+                                <!-- Rate Value -->
+                                <VerticalStackLayout Grid.Column="2" Grid.RowSpan="2" VerticalOptions="Center" HorizontalOptions="End">
+                                    <Label Text="{Binding Rate, StringFormat='{0:F4}'}"
+                                           FontSize="20"
+                                           FontAttributes="Bold"
+                                           TextColor="#2ECC71"
+                                           HorizontalOptions="End" />
+                                    <Label Text="UAH"
+                                           FontSize="11"
+                                           TextColor="#AAAAAA"
+                                           HorizontalOptions="End" />
+                                </VerticalStackLayout>
+
+                            </Grid>
+                        </Frame>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+        </RefreshView>
+
+    </Grid>
+
+</ContentPage>

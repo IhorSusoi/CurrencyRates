@@ -358,3 +358,13 @@ MigrationBackup/
 .ionide/
 
 # End of https://www.toptal.com/developers/gitignore/api/visualstudio
+
+# Firebase credentials (contains private keys — never commit)
+*-firebase.json
+google-services.json
+
+# Secrets folder (mounted into Docker at runtime)
+secrets/
+
+# Environment files
+.env

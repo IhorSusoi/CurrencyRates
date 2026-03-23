@@ -29,6 +29,9 @@ services:
       ASPNETCORE_ENVIRONMENT: "Production"
       ConnectionStrings__DefaultConnection: "Server=sqlserver;Database=CurrencyRatesDb;User Id=sa;Password=CurrencyRates_2026!;TrustServerCertificate=True;"
       AllowedOrigins__0: "http://localhost"
+      Firebase__CredentialPath: "/app/secrets/currencyrates-firebase.json"
+    volumes:
+      - ./secrets:/app/secrets:ro
     depends_on:
       sqlserver:
         condition: service_healthy

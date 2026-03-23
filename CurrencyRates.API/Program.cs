@@ -1,5 +1,10 @@
+using CurrencyRates.API.Hubs;
+using CurrencyRates.API.Services;
+using CurrencyRates.Domain.Interfaces;
 using CurrencyRates.Infrastructure.Data;
 using CurrencyRates.Infrastructure.Extensions;
+using FirebaseAdmin;
+using Google.Apis.Auth.OAuth2;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
 
@@ -25,6 +30,19 @@ try
 
     // Реєструємо всі сервіси Infrastructure (БД, НБУ клієнт, репозиторій...)
     builder.Services.AddInfrastructure(builder.Configuration);
+
+    // SignalR for real-time notifications to Blazor clients
+    builder.Services.AddSignalR();
+
+    // Firebase Admin SDK for FCM push notifications
+    var firebaseCredentialPath = builder.Configuration["Firebase:CredentialPath"] ?? "currencyrates-firebase.json";
+    FirebaseApp.Create(new AppOptions
+    {
+        Credential = GoogleCredential.FromFile(firebaseCredentialPath)
+    });
+
+    // Notification service (SignalR + FCM)
+    builder.Services.AddScoped<IRateSyncNotifier, RateSyncNotifier>();
 
     builder.Services.AddControllers();
 
@@ -52,9 +70,10 @@ try
         options.AddPolicy("BlazorClient", policy =>
             policy.WithOrigins(builder.Configuration.GetSection("AllowedOrigins").Get<string[]>()!)
                   .AllowAnyHeader()
-                  .AllowAnyMethod());
+                  .AllowAnyMethod()
+                  .AllowCredentials());
     });
-
+    builder.Services.AddSignalR();
     var app = builder.Build();
 
     // Автоматично застосовуємо міграції при старті
@@ -73,6 +92,7 @@ try
 
     app.UseCors("BlazorClient");
     app.MapControllers();
+    app.MapHub<CurrencyRateHub>("/hubs/currency-rates");
 
     app.Run();
 }

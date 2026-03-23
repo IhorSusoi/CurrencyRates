@@ -23,8 +23,10 @@ public interface ICurrencyRateService
     Task<IReadOnlyList<CurrencyRate>> GetOrFetchRatesAsync(DateOnly date, SourceType source);
 
     /// <summary>
-    /// Синхронізує курси на завтрішню дату.
+    /// Синхронізує курси на вказану дату.
     /// Викликається автоматично по розкладу.
     /// </summary>
-    Task SyncRatesAsync(DateOnly date);
+    /// <param name="date">Дата курсу.</param>
+    /// <returns>true якщо всі курси успішно отримані, false якщо деякі відсутні.</returns>
+    Task<bool> SyncRatesAsync(DateOnly date);
 }

@@ -11,4 +11,5 @@
   <Project Path="CurrencyRates.Client/CurrencyRates.Client.csproj" />
   <Project Path="CurrencyRates.Domain/CurrencyRates.Domain.csproj" />
   <Project Path="CurrencyRates.Infrastructure/CurrencyRates.Infrastructure.csproj" />
+  <Project Path="CurrencyRates.Mobile/CurrencyRates.Mobile.csproj" />
 </Solution>

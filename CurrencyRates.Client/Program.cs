@@ -15,5 +15,6 @@ builder.Services.AddScoped(sp => new HttpClient
 
 builder.Services.AddRadzenComponents();
 builder.Services.AddScoped<CurrencyRatesApiClient>();
+builder.Services.AddScoped<SyncNotificationService>();
 
 await builder.Build().RunAsync();
