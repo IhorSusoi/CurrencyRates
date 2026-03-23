@@ -73,7 +73,7 @@ try
                   .AllowAnyMethod()
                   .AllowCredentials());
     });
-
+    builder.Services.AddSignalR();
     var app = builder.Build();
 
     // Автоматично застосовуємо міграції при старті
