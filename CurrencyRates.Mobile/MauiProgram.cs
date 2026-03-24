@@ -15,7 +15,7 @@ public static class MauiProgram
     /// <summary>
     /// Default base URL for the Currency Rates API.
     /// </summary>
-    private const string ApiBaseUrl = "http://18.200.188.56";
+    private const string ApiBaseUrl = "http://34.253.10.242:8080";
 
     /// <summary>
     /// Creates and configures the MAUI application.
